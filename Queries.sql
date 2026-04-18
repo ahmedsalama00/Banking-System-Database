@@ -2,7 +2,7 @@
 -- List all customers (First and Last name) who were born before the year 1990.
 SELECT first_name, last_name
 FROM Customers
-Where year(date_of_birth)=1990;
+Where year(date_of_birth)>1990;
 -- Find all active accounts with a balance greater than 50,000.
 SELECT *
 FROM Accounts 
@@ -18,11 +18,11 @@ WHERE YEAR(hire_date)=2021;
 -- Find all transactions of type 'Withdrawal' where the amount is more than 2,000.
 SELECT * 
 FROM Transactions
-WHERE transaction_type='Withdrawl' AND amount >2000;
+WHERE transaction_type='Withdrawal' AND amount >2000;
 -- Count how many customers the bank has in each city.
 Select count(*),substring_index(address,',',1) as city
 from Customers
-group by address;
+group by city;
 -- Calculate the total balance of all accounts combined.
 SELECT SUM(balance)
 from Accounts;
@@ -50,6 +50,8 @@ ON b.branch_id=e.branch_id;
 -- Retrieve all transfers, showing the From_Account_ID, To_Account_ID, and the Amount, but include the Sender's First Name.
 SELECT from_account_id, to_account_id, amount, e.first_name
 FROM Transfers
+JOIN Accounts AS a ON t.from_account_id = a.account_id
+JOIN Customers AS c ON a.customer_id = c.customer_id;
 -- Find all customers who have a loan, showing their name, loan amount, and interest rate.
 SELECT l.loan_id, c.first_name,c.last_name, l.loan_amount, l.interest_rate
 FROM loans as l
@@ -96,7 +98,7 @@ group by l.loan_id;
 SELECT a.account_id, transaction_id,t.account_id FROM Accounts as a
 LEFT JOIN Transactions as t
 ON t.account_id=a.account_id
-WHERE t.account_id=NULL;
+WHERE t.account_id IS NULL;
 -- Level 5: Subqueries & Complex Logic (The Pro Level)
 -- Find the names of customers whose account balance is higher than the average balance of all accounts.
 SELECT CONCAT(c.first_name," ",c.last_name) as Full_name,a.balance
@@ -110,7 +112,7 @@ FROM Employees
 WHERE salary > (Select salary from Employees Where position='Manager' AND branch_id =1);
 -- Show the details of the last transaction made for each account (Use a subquery to find the max transaction_date).
 SELECT * FROM Transactions
-Where transaction_date =(SELECT MAX(transaction_date) FROM Transactions );
+Where (account_id,transaction_date) IN (SELECT account_id,MAX(transaction_date) FROM Transactions GROUP BY account_id );
 -- Identify customers who have both an active Loan AND an active Credit Card.
 SELECT c.customer_id, c.first_name,c.last_name,l.status,ca.status FROM Customers as c
 join Loans as l
